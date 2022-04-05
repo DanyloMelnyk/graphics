@@ -28,7 +28,6 @@ struct Primitive {
             glColor4d(r * 0.3, g * 0.3, b * 0.3, 0.001);
 
             for (auto v: vertices) {
-//                glVertex2d(v.x + 0.005, v.y + 0.005);
                 glVertex2d(v.x, v.y);
             }
 

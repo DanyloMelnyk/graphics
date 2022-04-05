@@ -4,25 +4,20 @@
 #include <GL/freeglut.h>
 #include "Primitive.h"
 #include "dispatch.h"
+#include "Command.h"
 
-static const char *const HELP = "Left mouse - dep. on mode (add vertex to current primitive/move closest vertex\n"
-                                "of current primitive to pointer position;\n"
-                                "Right mouse - open menu;\n"
-                                "Space - start new primitive;\n"
-                                "H - show help;\n"
-                                "A - set mode to add vertex to current primitive;\n"
-                                "M - set mode to move closest vertex;\n"
-                                "R - set color of current primitive red;\n"
-                                "G - set color of current primitive green;\n"
-                                "B - set color of current primitive blue;\n"
-                                "C - clear screen;";
 using namespace std;
 
-int HEIGHT = 600, WIDTH = 800;
+int HEIGHT = 600, WIDTH = 960;
 int MODE = 0;
 bool SHOW_HELP = false;
 
+string help;
+vector<Command> commands;
+
 vector<Primitive> primitives;
+
+void initHelp(const vector<Command> &commands);
 
 void renderString(float x, float y, void *font, const char *string) {
     glColor3f(0, 1, 1);
@@ -41,7 +36,7 @@ void renderScene() {
     }
 
     if (SHOW_HELP) {
-        renderString(-0.9, 0.9, GLUT_BITMAP_9_BY_15, HELP);
+        renderString(-0.9, 0.9, GLUT_BITMAP_9_BY_15, help.data());
     }
 
     for (int i = 0; i < primitives.size(); i++) {
@@ -51,35 +46,62 @@ void renderScene() {
     glutSwapBuffers();
 }
 
-void initMenu() {
+void initMenu(vector<Command> &commands) {
     glutCreateMenu(menuEvent);
 
-    glutAddMenuEntry("Mode: Add vertices", 'a');
-    glutAddMenuEntry("Mode: Move vertices", 'm');
-    glutAddMenuEntry("New primitive", ' ');
-    glutAddMenuEntry("Change color to red", 'r');
-    glutAddMenuEntry("Change color to green", 'g');
-    glutAddMenuEntry("Change color to blue", 'b');
-    glutAddMenuEntry("Clear", 'c');
-    glutAddMenuEntry("Delete current primitive", 'd');
-    glutAddMenuEntry("Delete last vertex", 'p');
+    for (const auto &command: commands) {
+        if (command.getMenuLabel() != nullptr) {
+//            cout << "Label: " << command.getMenuLabel() << endl;
+            glutAddMenuEntry(command.getMenuLabel(), command.getKey());
+        }
+    }
 
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-int main(int argc, char **argv) {
+void initCommands() {
+    commands.emplace_back(GLUT_LEFT_BUTTON, nullptr,
+                          "dep. on mode (add vertex to current primitive/move closest vertex\nof current primitive to pointer position",
+                          nullptr);
+    commands.emplace_back(GLUT_RIGHT_BUTTON, nullptr, "open menu", nullptr);
+    commands.emplace_back('h', nullptr, "show help", showHelpInfo);
 
-    cout << HELP << endl;
+    commands.emplace_back('a', "Mode: Add vertices", "set mode to add vertex to current primitive", setModeAdd);
+    commands.emplace_back('m', "Mode: Move vertices", "set mode to move closest vertex", setModeMove);
+    commands.emplace_back(' ', "New primitive", "create new primitive", newPrimitive);
+    commands.emplace_back('r', "Change color to red", "set color of current primitive red", changeColorToRed);
+    commands.emplace_back('g', "Change color to green", "set color of current primitive green", changeColorToGreen);
+    commands.emplace_back('b', "Change color to blue", "set color of current primitive blue", changeColorToBlue);
+    commands.emplace_back('p', "Delete last vertex", "delete last vertex", delLastVertex);
+    commands.emplace_back('d', "Delete current primitive", "delete current primitive", delLastPrimitive);
+    commands.emplace_back('c', "Clear screen", "clear screen", clear);
+}
+
+void initHelp(const vector<Command> &commands) {
+    ostringstream helpStream;
+
+    for (const auto &command: commands) {
+        helpStream << command.getHelpText();
+    }
+
+    help = helpStream.str();
+}
+
+int main(int argc, char **argv) {
+    initCommands();
+
+    initHelp(commands);
+    cout << "Help:\n" << help << "\n" << endl;
 
     primitives.emplace_back();
 
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA); // GLUT_DEPTH |
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(100, 100);
     glutInitWindowSize(WIDTH, HEIGHT);
     glutCreateWindow("Lab 1");
 
-    initMenu();
+    initMenu(commands);
 
     glutDisplayFunc(renderScene);
     glutMouseFunc(mouseEvent);

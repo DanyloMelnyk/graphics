@@ -3,7 +3,7 @@ project(graphics)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(graphics src/main.cpp src/dispatch.cpp src/dispatch.h)
+add_executable(graphics src/main.cpp src/dispatch.cpp src/dispatch.h src/Command.h)
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
