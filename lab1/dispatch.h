@@ -5,7 +5,7 @@
 
 #include <GL/freeglut.h>
 #include "Primitive.h"
-#include "Command.h"
+#include "../lib/Command.h"
 
 extern std::vector<Primitive> primitives;
 extern int WIDTH, HEIGHT;
