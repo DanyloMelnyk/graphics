@@ -144,6 +144,18 @@ void initCommands() {
             state.changeLastColor(vec3(1, 1, 1.4));
         }
     });
+
+    commands.emplace_back('A', "And mix", "and op", []() {
+        state.setLogicOp(GL_AND);
+    });
+
+    commands.emplace_back('N', "NAND mix", "nand op", []() {
+        state.setLogicOp(GL_NAND);
+    });
+
+    commands.emplace_back('M', "No mix", "no op", []() {
+        state.setLogicOp(GL_COPY);
+    });
 }
 
 void initHelp(const vector<Command> &commands) {
@@ -164,9 +176,16 @@ MessageCallback(GLenum source,
                 GLsizei length,
                 const GLchar *message,
                 const void *userParam) {
-    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-            type, severity, message);
+    if (severity == GL_DEBUG_SEVERITY_HIGH_AMD) {
+        fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+                (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+                type, severity, message);
+    } else {
+        fprintf(stdout, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+                (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+                type, severity, message);
+    }
+
 }
 
 int main(int argc, char **argv) {
@@ -209,7 +228,10 @@ int main(int argc, char **argv) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
 
-    state.shader = LoadShader("/home/danylo/CLionProjects/graphics/shader.vert", "/home/danylo/CLionProjects/graphics/shader.frag");
+    state.primitiveShader = LoadShader("/home/danylo/CLionProjects/graphics/primitive.vert",
+                                       "/home/danylo/CLionProjects/graphics/primitive.frag");
+    state.gridShader = LoadShader("/home/danylo/CLionProjects/graphics/grid.vert",
+                                  "/home/danylo/CLionProjects/graphics/grid.frag");
 
     initCommands();
 
@@ -217,21 +239,19 @@ int main(int argc, char **argv) {
     cout << "Help:\n" << help << "\n" << endl;
 
 
-//    Grid grid = Grid(100);
-    Grid grid = Grid(50); // FIXME
+    Grid grid = Grid(100);
 
     state.grid = grid;
 
     long frame = 0;
 
     while (!glfwWindowShouldClose(state.window)) {
+#ifdef DEBUG
         cout << "Frame: " << frame++ << endl;
-
+#endif
         glfwPollEvents();
 
         state.render();
-
-//        cout << "\n\n";
     }
 
     glfwDestroyWindow(state.window);

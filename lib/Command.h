@@ -21,9 +21,9 @@ class Command {
     string helpText;
 
 
-    void (*callback)();
+    void (*callback)() = nullptr;
 
-    void (*modCallback)(int);
+    void (*modCallback)(int) = nullptr;
 
 public:
     Command(int key, const char *menuDescription, const char *helpDescription, void (*callback)()) :
@@ -98,7 +98,7 @@ public:
             } else if (key == GLUT_RIGHT_BUTTON) {
                 menuLabelStream << "Right mouse";
             } else {
-                menuLabelStream << (char) toupper(key);
+                menuLabelStream << (char) key;
             }
 
             menuLabelStream << ")";
@@ -149,7 +149,7 @@ public:
     }
 
     void action(int mods) {
-        cout << "Click" << menuLabel << endl;
+        cout << "Click: " << menuLabel << endl;
 
         if (callback != nullptr) {
             callback();

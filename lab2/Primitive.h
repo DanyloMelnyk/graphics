@@ -57,6 +57,8 @@ public:
 
         cout << "New octagon " << x << " " << y << " with size " << size << endl;
 
+        updateColor();
+
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
@@ -69,10 +71,10 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-        // position attribute
+        // position attribute (x, y)
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
         glEnableVertexAttribArray(0);
-        // color attribute
+        // color attribute (r, g, b)
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (2 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
@@ -81,9 +83,13 @@ public:
 
         glBindVertexArray(0);
         // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+
+        cout << "Primitive Init Error: " << glGetError() << endl;
+
     }
 
     void render(GLuint shader) {
+        glUseProgram(shader);
 
         GLint transformLoc = glGetUniformLocation(shader, "transform");
         mat4 trans = mat4(1.0f);
@@ -192,22 +198,21 @@ public:
             }
         }
 
-        cout << "Accumulated " << "(" << xAcc / count << " " << yAcc / count << ")" << endl;
-        cout << "Count: " << count << endl;
+        //        cout << "Accumulated " << "(" << xAcc / count << " " << yAcc / count << ")" << endl;
+        //        cout << "Count: " << count << endl;
 
         if (fill && count > 1) {
-            grid.fill(xAcc / count, yAcc / count, color);
+            grid.fill(xAcc / count, yAcc / count, vec4(color, 1.0));
         }
 
-//        for (int i = 1; i <= 8; i++) {
-//            vec4 pixel = vec4(vertices[5 * i], vertices[5 * i + 1], 0, 1);
-//            pixel = trans * pixel;
-//
-//            grid.drawLine(lastPixel.x, lastPixel.y, pixel.x, pixel.y, vec3(1,1,0));
-//            lastPixel = pixel;
-//        }
+        //        for (int i = 1; i <= 8; i++) {
+        //            vec4 pixel = vec4(vertices[5 * i], vertices[5 * i + 1], 0, 1);
+        //            pixel = trans * pixel;
+        //
+        //            grid.drawLine(lastPixel.x, lastPixel.y, pixel.x, pixel.y, vec3(1,1,0));
+        //            lastPixel = pixel;
+        //        }
 
-        grid.andBuffer();
     }
 
     void modifyColor(vec3 d) {
@@ -235,15 +240,21 @@ public:
             color.b = 0;
         }
 
+        cout << "New color (" << color.r << "; " << color.g << "; " << color.b << ")" << endl;
+
+        updateColor();
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    void updateColor() {
         for (int i = 0; i < 9; i++) {
             vertices[i * 5 + 2] = color.r;
             vertices[i * 5 + 3] = color.g;
             vertices[i * 5 + 4] = color.b;
         }
-
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
 };

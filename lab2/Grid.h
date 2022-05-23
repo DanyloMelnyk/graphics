@@ -16,6 +16,7 @@
 
 using namespace std;
 using glm::vec3;
+using glm::vec4;
 using glm::ivec2;
 using glm::vec2;
 using glm::ivec3;
@@ -25,8 +26,8 @@ struct Grid {
 
     int rows, cols;
 
-    vec3 *colors;
-    vec3 *colorsBuffer;
+    vec4 *colors;
+//    vec3 *colorsBuffer;
 
     // (x, y) (r, g, b)
     GLfloat *vertices;
@@ -49,15 +50,14 @@ struct Grid {
 
 
         // 1 піксель = 2 трикутники = 4 вершини
-        vertices = new GLfloat[5 * 4 * pixels];
+        vertices = new GLfloat[6 * 4 * pixels];
         cout << "0" << endl;
 
         setPixelCoords();
 
         cout << "1" << endl;
 
-        colors = new vec3[pixels];
-        colorsBuffer = new vec3[pixels];
+        colors = new vec4[pixels];
         clearColors();
 
         cout << "2" << endl;
@@ -107,16 +107,16 @@ struct Grid {
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, 5 * 4 * pixels * sizeof(float), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 6 * 4 * pixels * sizeof(float), vertices, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * 2 * pixels * sizeof(float), indices, GL_STATIC_DRAW);
 
         // position attribute
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
         glEnableVertexAttribArray(0);
         // color attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (2 * sizeof(float)));
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (2 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -144,16 +144,11 @@ struct Grid {
         if (error != 0)
             cout << "glUseProgram Error: " << error << endl;
 
-        GLint transformLoc = glGetUniformLocation(shader, "transform");
-        glm::mat4 trans = glm::mat4(1.0f);
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
         glBindVertexArray(VAO);
 
 //        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawElements(GL_TRIANGLES, pixels * 3 * 2, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-
 
         error = glGetError();
         if (error != 0) {
@@ -184,36 +179,22 @@ struct Grid {
 
         dirty = true;
 
-        colorsBuffer[y * cols + x] = color;
+        colors[y * cols + x] = vec4(color, 1.0f);
 
         return true;
     }
 
     void clearColors() {
-//        vec3 dark(0, 0, 0);
-//        vec3 light(0.2, 0.2, 0.2);
-//        for (int row = 0; row < rows; row++) {
-//            for (int col = 0; col < cols; col++) {
-//                if ((col + row) % 2 == 0) {
-//                    colors[cols * row + col] = dark;
-//                    colorsBuffer[cols * row + col] = dark;
-//                } else {
-//                    colors[cols * row + col] = light;
-//                    colorsBuffer[cols * row + col] = light;
-//                }
-//            }
-//        }
-
-
-
+        vec4 none(1, 1, 1, 0.0);
         vec3 white(1, 1, 1);
         vec3 dark(0.2, 0.2, 0.2);
         vec3 black(0, 0, 0);
-        clearColors(colors, black, white);
-        clearColors(colorsBuffer, black, black);
+//        clearColors(colors, black, white);
+        clearColors(colors, none, none);
+//        clearColors(colorsBuffer, black, black);
     }
 
-    void clearColors(vec3 *buffer, vec3 c1, vec3 c2) {
+    void clearColors(vec4 *buffer, vec4 c1, vec4 c2) {
 //        vec3 dark(0, 0, 0);
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
@@ -242,7 +223,7 @@ struct Grid {
                     offset[0] = (vert % 2 == 0) ? x : x + 2.0 / cols; // X
                     offset[1] = (vert / 2 == 0) ? y : y + 2.0 / cols; // Y
 
-                    offset += 5;
+                    offset += 6;
                 }
             }
         }
@@ -252,20 +233,21 @@ struct Grid {
         GLfloat *offset = vertices;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                vec3 c = colors[cols * row + col];
+                vec4 c = colors[cols * row + col];
 
                 for (int vert = 0; vert < 4; vert++) {
                     offset[2] = c.r; // R
                     offset[3] = c.g; // G
                     offset[4] = c.b; // B
+                    offset[5] = c.a; // B
 
-                    offset += 5;
+                    offset += 6;
                 }
             }
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, 5 * 4 * pixels * sizeof(float), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 6 * 4 * pixels * sizeof(float), vertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         dirty = false;
@@ -344,10 +326,11 @@ struct Grid {
         return make_pair(firstPixel, lastPixel);
     }
 
-    void fill(int x, int y, vec3 color) {
+    void fill(int x, int y, vec4 color) {
         bool *visited = new bool[rows * cols];
         for (int i = 0; i < rows * cols; i++) {
-            visited[i] = colorsBuffer[i] == color;
+//            visited[i] = colorsBuffer[i] == color;
+            visited[i] = colors[i] == color;
         }
 
         stack<ivec2> p;
@@ -386,7 +369,7 @@ struct Grid {
             }
 
 
-            colorsBuffer[top.y * cols + top.x] = color;
+            colors[top.y * cols + top.x] = color;
             visited[top.y * cols + top.x] = true;
 
 
@@ -412,37 +395,6 @@ struct Grid {
 //        colors[t.y * cols + t.x] = vec3(1, 0, 0);
 
         delete[] visited;
-    }
-
-    vec3 andVec(vec3 a, vec3 b) {
-        if (a.r + a.g + a.b != 0 && b.r + b.g + b.b != 0) {
-            return b;
-        }
-
-        return vec3(0.0, 0.0, 0.0);
-    }
-
-    vec3 nandVec(vec3 a, vec3 b) {
-        if (!(a.r + a.g + a.b != 0 && b.r + b.g + b.b != 0)) {
-            return b;
-        }
-
-        return vec3(0.0, 0.0, 0.0);
-    }
-
-    void andBuffer() {
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                colors[cols * row + col] = nandVec(colors[cols * row + col], colorsBuffer[cols * row + col]);
-            }
-        }
-
-
-        vec3 white(1, 1, 1);
-        vec3 dark(0.2, 0.2, 0.2);
-        vec3 black(0, 0, 0);
-
-        clearColors(colorsBuffer, black, black);
     }
 
 };

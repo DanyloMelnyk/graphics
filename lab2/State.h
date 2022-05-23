@@ -15,7 +15,8 @@ using namespace glm;
 struct State {
     int HEIGHT = 600, WIDTH = 600;
 
-    GLuint shader;
+    GLuint primitiveShader;
+    GLuint gridShader;
 
     Grid grid;
 
@@ -30,6 +31,8 @@ struct State {
 
     double scrol = 0.0;
 
+    unsigned int logicOp = GL_COPY;
+
     void render() {
         if (abs(scrol) > 1.0) {
             resizeGrid(scrol);
@@ -37,23 +40,33 @@ struct State {
         }
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.8, 0.8, 0.8, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        grid.clearColors();
+        glLogicOp(logicOp);
+
+        glEnable(GL_COLOR_LOGIC_OP);
+
         if (showRasterized) {
             for (auto octagon: octagons) {
+                grid.clearColors();
                 octagon.render(grid);
+
+                grid.render(gridShader);
             }
         }
 
-        grid.render(shader);
+//        grid.render(primitiveShader);
 
 
         if (showReal) {
             for (auto octagon: octagons) {
-                octagon.render(shader);
+                octagon.render(primitiveShader);
             }
         }
+
+        glDisable(GL_COLOR_LOGIC_OP);
+
 
         glfwSwapBuffers(window);
     }
@@ -125,6 +138,21 @@ struct State {
         if (!octagons.empty()) {
             octagons.back().modifyColor(d);
         }
+    }
+
+    void setLogicOp(unsigned int op) {
+        if (op == GL_COPY) {
+            cout << "No logic op" << endl;
+        } else if (op == GL_AND) {
+            cout << "Set logic op to AND" << endl;
+        } else if (op == GL_NAND) {
+            cout << "Set logic op to NAND" << endl;
+        } else {
+            cout << "Wrong op!" << endl;
+            return;
+        }
+
+        logicOp = op;
     }
 };
 

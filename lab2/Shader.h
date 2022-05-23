@@ -45,13 +45,13 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
     GLint result = GL_FALSE;
     int logLength;
 
-    // Compile vertex shader
+    // Compile vertex primitiveShader
 
-    cout << "Compiling vertex shader." << endl;
+    cout << "Compiling vertex primitiveShader." << endl;
     glShaderSource(vertShader, 1, &vertShaderSrc, NULL);
     glCompileShader(vertShader);
 
-    // Check vertex shader
+    // Check vertex primitiveShader
 
     glGetShaderiv(vertShader, GL_COMPILE_STATUS, &result);
     glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &logLength);
@@ -59,13 +59,13 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
     glGetShaderInfoLog(vertShader, logLength, NULL, &vertShaderError[0]);
     cout << &vertShaderError[0] << endl;
 
-    // Compile fragment shader
+    // Compile fragment primitiveShader
 
-    cout << "Compiling fragment shader." << endl;
+    cout << "Compiling fragment primitiveShader." << endl;
     glShaderSource(fragShader, 1, &fragShaderSrc, NULL);
     glCompileShader(fragShader);
 
-    // Check fragment shader
+    // Check fragment primitiveShader
 
     glGetShaderiv(fragShader, GL_COMPILE_STATUS, &result);
     glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
