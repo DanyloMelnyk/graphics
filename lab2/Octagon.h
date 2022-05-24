@@ -2,12 +2,9 @@
 #define GRAPHICS_PRIMITIVE_H
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include <vector>
 #include <iostream>
-
-//#include "SOIL/SOIL.h"
+#include <GL/freeglut.h>
 #include "Grid.h"
 
 #include <glm/glm.hpp>
@@ -82,7 +79,7 @@ public:
         // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
 
         glBindVertexArray(0);
-        // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+        // Unbind VAO (it's always keyRepr good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
         cout << "Primitive Init Error: " << glGetError() << endl;
 
@@ -108,7 +105,6 @@ public:
 //        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawElements(GL_TRIANGLES, 3 * 8, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-
 
         /*
          * 8 трикутників:
@@ -140,17 +136,6 @@ public:
          * (x, y) - (x - t, y + t) - (x, y + size)
          *
          */
-    }
-
-
-    void printM(mat4 mat4) {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                cout << mat4[i][j] << " ";
-            }
-
-            cout << endl;
-        }
     }
 
     void render(Grid grid, bool fill = true) {

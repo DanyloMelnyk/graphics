@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <GL/freeglut.h>
+#include "../lab2/dispatch.h"
 
 using namespace std;
 
@@ -19,69 +20,56 @@ class Command {
 
     bool showInHelp;
     string helpText;
-
+    int mod;
 
     void (*callback)() = nullptr;
 
-    void (*modCallback)(int) = nullptr;
-
 public:
-    Command(int key, const char *menuDescription, const char *helpDescription, void (*callback)()) :
-            callback(callback) {
+    Command(int key, const char *menuDescription, const char *helpDescription, void (*callback)(), int mod) :
+            callback(callback), mod(mod), key(key) {
+        setMenuLabel(key, mod, menuDescription);
 
-        this->key = key;
-
-        if (menuDescription == nullptr) {
-            showInMenu = false;
-        } else {
-            showInMenu = true;
-
-            ostringstream menuLabelStream;
-
-            menuLabelStream << menuDescription << " (";
-
-            if (key == ' ') {
-                menuLabelStream << "Space";
-            } else if (key == GLUT_LEFT_BUTTON) {
-                menuLabelStream << "Left mouse";
-            } else if (key == GLUT_RIGHT_BUTTON) {
-                menuLabelStream << "Right mouse";
-            } else {
-                menuLabelStream << (char) toupper(key);
-            }
-
-            menuLabelStream << ")";
-
-            menuLabel = menuLabelStream.str();
-        }
-
-        if (helpDescription == nullptr) {
-            showInHelp = false;
-        } else {
-            showInHelp = true;
-            ostringstream helpTextStream;
-            if (key == ' ') {
-                helpTextStream << "Space";
-            } else if (key == GLUT_LEFT_BUTTON) {
-                helpTextStream << "Left mouse";
-            } else if (key == GLUT_RIGHT_BUTTON) {
-                helpTextStream << "Right mouse";
-            } else {
-                helpTextStream << (char) toupper(key);
-            }
-
-            helpTextStream << " - " << helpDescription << ";" << endl;
-
-            helpText = helpTextStream.str();
-        }
-
+        setHelpDescription(key, mod, helpDescription);
     }
 
-    Command(int key, const char *menuDescription, const char *helpDescription, void (*callback)(int)) :
-            modCallback(callback) {
+    Command(int key, const char *menuDescription, const char *helpDescription, void (*callback)()) :
+            callback(callback), mod(64), key(key) {
+        setMenuLabel(key, mod, menuDescription);
 
-        this->key = key;
+        setHelpDescription(key, mod, helpDescription);
+    }
 
+    static string keyRepr(int key, int mod) {
+        if (mod == SPECIAL_KEY) {
+            if (key == GLUT_LEFT_BUTTON) {
+                return "Left mouse";
+            } else if (key == GLUT_RIGHT_BUTTON) {
+                return "Right mouse";
+            } else if (key == GLUT_KEY_UP) {
+                return "Arrow up";
+            } else if (key == GLUT_KEY_DOWN) {
+                return "Arrow down";
+            } else if (key == GLUT_KEY_RIGHT) {
+                return "Arrow right";
+            } else if (key == GLUT_KEY_LEFT) {
+                return "Arrow left";
+            } else {
+                return "<unknown special key>";
+            }
+        }
+
+        if (mod == GLUT_ACTIVE_CTRL) {
+            return "CTRL + " + keyRepr(key, 0);
+        }
+
+        if (key == ' ') {
+            return "Space";
+        } else {
+            return string(1, (char)(toupper(key)));
+        }
+    }
+
+    void setMenuLabel(int key, int mod, const char *menuDescription) {
         if (menuDescription == nullptr) {
             showInMenu = false;
         } else {
@@ -91,41 +79,12 @@ public:
 
             menuLabelStream << menuDescription << " (";
 
-            if (key == ' ') {
-                menuLabelStream << "Space";
-            } else if (key == GLUT_LEFT_BUTTON) {
-                menuLabelStream << "Left mouse";
-            } else if (key == GLUT_RIGHT_BUTTON) {
-                menuLabelStream << "Right mouse";
-            } else {
-                menuLabelStream << (char) key;
-            }
+            menuLabelStream << keyRepr(key, mod);
 
             menuLabelStream << ")";
 
             menuLabel = menuLabelStream.str();
         }
-
-        if (helpDescription == nullptr) {
-            showInHelp = false;
-        } else {
-            showInHelp = true;
-            ostringstream helpTextStream;
-            if (key == ' ') {
-                helpTextStream << "Space";
-            } else if (key == GLUT_LEFT_BUTTON) {
-                helpTextStream << "Left mouse";
-            } else if (key == GLUT_RIGHT_BUTTON) {
-                helpTextStream << "Right mouse";
-            } else {
-                helpTextStream << (char) toupper(key);
-            }
-
-            helpTextStream << " - " << helpDescription << ";" << endl;
-
-            helpText = helpTextStream.str();
-        }
-
     }
 
     const char *getMenuLabel() const {
@@ -140,7 +99,20 @@ public:
         if (showInHelp) {
             return helpText.data();
         } else {
-            return nullptr;
+            return "";
+        }
+    }
+
+    void setHelpDescription(int key, int mod, const char *helpDescription) {
+        if (helpDescription == nullptr) {
+            showInHelp = false;
+        } else {
+            showInHelp = true;
+            ostringstream helpTextStream;
+
+            helpTextStream << keyRepr(key, mod) << " - " << helpDescription << ";" << endl;
+
+            helpText = helpTextStream.str();
         }
     }
 
@@ -149,15 +121,22 @@ public:
     }
 
     void action(int mods) {
-        cout << "Click: " << menuLabel << endl;
 
-        if (callback != nullptr) {
+        if (mods & mod) {
+            cout << "Click: " << helpText << " mods: " << mods << endl;
+
             callback();
         }
+    }
 
-        if (modCallback != nullptr) {
-            modCallback(mods);
+    static string initHelp(const vector<Command> &commands) {
+        ostringstream helpStream;
+
+        for (const auto &command: commands) {
+            helpStream << command.getHelpText();
         }
+
+        return helpStream.str();
     }
 };
 

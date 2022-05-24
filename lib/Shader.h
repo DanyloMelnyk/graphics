@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <GL/glut.h>
 
 using namespace std;
 
@@ -31,10 +31,9 @@ string readFile(const char *filePath) {
 }
 
 
-GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
+GLuint loadShaders(const char *vertex_path, const char *fragment_path) {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-
     // Read shaders
 
     string vertShaderStr = readFile(vertex_path);
@@ -47,7 +46,7 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
 
     // Compile vertex primitiveShader
 
-    cout << "Compiling vertex primitiveShader." << endl;
+    cout << "Compiling: " << vertex_path << endl;
     glShaderSource(vertShader, 1, &vertShaderSrc, NULL);
     glCompileShader(vertShader);
 
@@ -57,11 +56,16 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
     glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &logLength);
     vector<char> vertShaderError((logLength > 1) ? logLength : 1);
     glGetShaderInfoLog(vertShader, logLength, NULL, &vertShaderError[0]);
-    cout << &vertShaderError[0] << endl;
+    if (vertShaderError[0] != '\0') {
+        cerr << "Compiling: " << vertex_path << endl;
+
+        cerr << "Errors: " << &vertShaderError[0] << endl;
+        exit(-1);
+    }
 
     // Compile fragment primitiveShader
 
-    cout << "Compiling fragment primitiveShader." << endl;
+    cout << "Compiling: " << fragment_path << endl;
     glShaderSource(fragShader, 1, &fragShaderSrc, NULL);
     glCompileShader(fragShader);
 
@@ -71,9 +75,15 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
     glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
     vector<char> fragShaderError((logLength > 1) ? logLength : 1);
     glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
-    cout << &fragShaderError[0] << endl;
 
-    cout << "Linking program" << endl;
+    if (fragShaderError[0] != '\0') {
+        cerr << "Compiling: " << fragment_path << endl;
+
+        cerr << "Errors: " << &fragShaderError[0] << endl;
+        exit(-1);
+    }
+
+    cout << "Linking program (" << vertex_path << " + " << fragment_path << ")" << endl;
     GLuint program = glCreateProgram();
     glAttachShader(program, vertShader);
     glAttachShader(program, fragShader);
@@ -83,7 +93,15 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path) {
     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
     vector<char> programError((logLength > 1) ? logLength : 1);
     glGetProgramInfoLog(program, logLength, NULL, &programError[0]);
-    cout << &programError[0] << endl;
+
+    if (programError[0] != '\0') {
+        cerr << "Linking program (" << vertex_path << " + " << fragment_path << ")" << endl;
+
+        cerr << "Errors: " << &programError[0] << endl;
+        exit(-1);
+    } else {
+        cout << "Successful!\n" << endl;
+    }
 
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);

@@ -1,58 +1,25 @@
 #ifndef GRAPHICS_DISPATCH_H
 #define GRAPHICS_DISPATCH_H
 
+#define GLFW_PRESS 1
+#define GLFW_RELEASE 2
+#define SPECIAL_KEY 0x0010
+
 #include <iostream>
 
-#include "Primitive.h"
+#include "Octagon.h"
 #include <GL/freeglut.h>
 #include "../lib/Command.h"
 #include "State.h"
 
-extern int MODE;
-extern std::vector<Command> commands;
-extern bool SHOW_HELP;
-
 extern State state;
 
-void keyEvent(GLFWwindow *window, int key, int scancode, int action, int mods);
+void keyEvent(unsigned char key, int action, int mods);
 
-void resizeEvent(GLFWwindow *window, int width, int height);
+void resizeEvent(int width, int height);
 
-void mouseEvent(GLFWwindow *window, int button, int action, int mods);
+void mouseEvent(int button, int action, int x, int y);
 
-void scrollEvent(GLFWwindow *window, double xOffset, double yOffset);
-
-void menuEvent(int value);
-//
-//void addVertex(int x, int y);
-//
-//void moveVertex(int x, int y);
-//
-//void newPrimitive();
-//
-void clear();
-//
-//void changeColor(double red, double green, double blue);
-//
-//void setMode(int mode);
-//
-//void showHelp(bool show);
-//
-//void delLastPrimitive();
-//
-//void delLastVertex();
-//
-//void setModeAdd();
-//
-//void setModeMove();
-//
-//void changeColorToRed();
-//
-//void changeColorToGreen();
-//
-//void changeColorToBlue();
-//
-//void showHelpInfo();
-
+void scrollEvent(int button, int dir, int x, int y);
 
 #endif //GRAPHICS_DISPATCH_H

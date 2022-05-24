@@ -22,16 +22,14 @@ using glm::vec2;
 using glm::ivec3;
 
 struct Grid {
-
-
     int rows, cols;
 
     vec4 *colors;
-//    vec3 *colorsBuffer;
 
     // (x, y) (r, g, b)
     GLfloat *vertices;
 
+    // vertices ind
     GLuint *indices;
 
     GLuint VBO, VAO, EBO;
@@ -48,29 +46,23 @@ struct Grid {
 
         cout << "Grid " << rows << "x" << cols << endl;
 
-
         // 1 піксель = 2 трикутники = 4 вершини
         vertices = new GLfloat[6 * 4 * pixels];
-        cout << "0" << endl;
 
         setPixelCoords();
-
-        cout << "1" << endl;
 
         colors = new vec4[pixels];
         clearColors();
 
-        cout << "2" << endl;
-
         indices = new GLuint[3 * 2 * pixels];
         setIndices();
 
-        cout << "3" << endl;
-
         bindBuffers();
 
-        cout << "Init Error: " << glGetError() << endl;
-
+        GLenum error = glGetError();
+        if (error != 0) {
+            cout << "Init Error: " << error << endl;
+        }
     }
 
     void setIndices() {
@@ -124,7 +116,7 @@ struct Grid {
 
         glBindVertexArray(0);
         // Unbind VAO
-        // (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+        // (it's always keyRepr good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
     }
 
     void render(int shader) {
@@ -134,7 +126,6 @@ struct Grid {
 
             update();
 
-//            bindBuffers();
             dirty = false;
         }
 
@@ -186,16 +177,11 @@ struct Grid {
 
     void clearColors() {
         vec4 none(1, 1, 1, 0.0);
-        vec3 white(1, 1, 1);
-        vec3 dark(0.2, 0.2, 0.2);
-        vec3 black(0, 0, 0);
-//        clearColors(colors, black, white);
+
         clearColors(colors, none, none);
-//        clearColors(colorsBuffer, black, black);
     }
 
     void clearColors(vec4 *buffer, vec4 c1, vec4 c2) {
-//        vec3 dark(0, 0, 0);
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 if ((col + row) % 2 != 0) {
@@ -273,7 +259,6 @@ struct Grid {
         }
 
         while (x1 != x2 || y1 != y2) {
-//            setI(x1, y1, color);
             if (setI(x1, y1, color)) {
                 lastPixel = ivec2(x1, y1);
 
@@ -312,9 +297,7 @@ struct Grid {
 
         pair<ivec2, ivec2> drawnPixels = drawLine1(round(xa), round(ya), round(xb), round(yb), color);
 
-//        vec2 firstPixel = vec2(2.0 * drawnPixels.first.x / rows - 1, 2.0 * drawnPixels.first.y / cols - 1);
         vec2 firstPixel = vec2(drawnPixels.first.x, drawnPixels.first.y);
-//        vec2 lastPixel = vec2(2.0 * drawnPixels.second.x / rows - 1, 2.0 * drawnPixels.second.y / cols - 1);
         vec2 lastPixel = vec2(drawnPixels.second.x, drawnPixels.second.y);
 
         if (drawnPixels.first.x == -1)
@@ -329,7 +312,6 @@ struct Grid {
     void fill(int x, int y, vec4 color) {
         bool *visited = new bool[rows * cols];
         for (int i = 0; i < rows * cols; i++) {
-//            visited[i] = colorsBuffer[i] == color;
             visited[i] = colors[i] == color;
         }
 
@@ -357,7 +339,7 @@ struct Grid {
         p.emplace(xI, yI);
         auto t = p.top();
 
-        cout << "\n\nTOP (" << p.top().x << " " << p.top().y << ")" << endl;
+//        cout << "\n\nTOP (" << p.top().x << " " << p.top().y << ")" << endl;
 
         while (!p.empty()) {
             ivec2 top = p.top();
@@ -391,8 +373,6 @@ struct Grid {
         }
 
         dirty = true;
-
-//        colors[t.y * cols + t.x] = vec3(1, 0, 0);
 
         delete[] visited;
     }

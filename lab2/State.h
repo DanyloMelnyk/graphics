@@ -7,8 +7,9 @@
 
 #include <GL/gl.h>
 #include "Grid.h"
-#include "Primitive.h"
+#include "Octagon.h"
 #include <glm/glm.hpp>
+#include "Command.h"
 
 using namespace glm;
 
@@ -21,7 +22,7 @@ struct State {
     Grid grid;
 
     vector<Octagon> octagons;
-    GLFWwindow *window;
+    vector<Command> commands;
 
     double prevX, prevY;
     bool isCompleted = true;
@@ -29,9 +30,13 @@ struct State {
     bool showRasterized = false;
     bool showReal = true;
 
+    bool fill = true;
+
     double scrol = 0.0;
 
     unsigned int logicOp = GL_COPY;
+
+    string help;
 
     void render() {
         if (abs(scrol) > 1.0) {
@@ -39,9 +44,8 @@ struct State {
             scrol = 0;
         }
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClearColor(0.8, 0.8, 0.8, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glLogicOp(logicOp);
 
@@ -50,14 +54,13 @@ struct State {
         if (showRasterized) {
             for (auto octagon: octagons) {
                 grid.clearColors();
-                octagon.render(grid);
+                octagon.render(grid, fill);
 
                 grid.render(gridShader);
             }
         }
 
 //        grid.render(primitiveShader);
-
 
         if (showReal) {
             for (auto octagon: octagons) {
@@ -67,8 +70,7 @@ struct State {
 
         glDisable(GL_COLOR_LOGIC_OP);
 
-
-        glfwSwapBuffers(window);
+        glutSwapBuffers();
     }
 
     void leftClick(double x, double y) {
@@ -85,15 +87,18 @@ struct State {
             isCompleted = false;
         } else {
             double l = sqrt(pow(prevX - x, 2) + pow(prevY - y, 2));
-//            l=0.5;
             octagons.emplace_back(prevX, prevY, l, vec3(0.6, 0.7, 0.8));
 
             isCompleted = true;
         }
+
+        glutPostRedisplay();
     }
 
     void clear() {
         octagons.clear();
+
+        glutPostRedisplay();
     }
 
     void moveLast(vec2 d) {
@@ -107,6 +112,8 @@ struct State {
                 last.y += d.y;
             }
         }
+
+        glutPostRedisplay();
     }
 
     void resizeGrid(int d) {
@@ -116,27 +123,36 @@ struct State {
         cout << "New size: " << newSize << endl;
 
         this->grid = Grid(newSize);
+        glutPostRedisplay();
     }
 
     void scroll(double d) {
-        scrol += d / 2;
+        scrol += 1.5 * d;
+        glutPostRedisplay();
+
     }
 
     void rotateLast(double d) {
         if (!octagons.empty()) {
             octagons.back().angle += d;
+
+            glutPostRedisplay();
         }
     }
 
     void changeLastSize(double d) {
         if (!octagons.empty()) {
             octagons.back().size *= d;
+
+            glutPostRedisplay();
         }
     }
 
     void changeLastColor(vec3 d) {
         if (!octagons.empty()) {
             octagons.back().modifyColor(d);
+
+            glutPostRedisplay();
         }
     }
 
@@ -153,6 +169,20 @@ struct State {
         }
 
         logicOp = op;
+        glutPostRedisplay();
+    }
+
+    void setRasterized(bool b) {
+        showRasterized = b;
+        showReal = !b;
+
+        glutPostRedisplay();
+    }
+
+    void setFill(bool b) {
+        fill = b;
+
+        glutPostRedisplay();
     }
 };
 
