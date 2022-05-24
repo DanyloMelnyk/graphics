@@ -4,7 +4,7 @@
 #include <GL/freeglut.h>
 #include "Primitive.h"
 #include "dispatch.h"
-#include "Command.h"
+#include "../lib/Command.h"
 
 using namespace std;
 
@@ -74,7 +74,7 @@ void initCommands() {
     commands.emplace_back('b', "Change color to blue", "set color of current primitive blue", changeColorToBlue);
     commands.emplace_back('p', "Delete last vertex", "delete last vertex", delLastVertex);
     commands.emplace_back('d', "Delete current primitive", "delete current primitive", delLastPrimitive);
-    commands.emplace_back('c', "Clear screen", "clear screen", clear);
+    commands.emplace_back('c', "Clear screen", "clearColors screen", clear);
 }
 
 void initHelp(const vector<Command> &commands) {
