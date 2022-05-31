@@ -94,7 +94,7 @@ struct Grid {
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
 
-        // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+        // Bind the Vertex Array Object first, then bind and setVert vertex buffer(s) and attribute pointer(s).
 
         glBindVertexArray(VAO);
 

@@ -8,7 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <GL/freeglut.h>
-#include "../lab2/dispatch.h"
+#include <vector>
 
 using namespace std;
 
@@ -53,6 +53,8 @@ public:
                 return "Arrow right";
             } else if (key == GLUT_KEY_LEFT) {
                 return "Arrow left";
+            } else if (key == 112) {
+                return "SHIFT";
             } else {
                 return "<unknown special key>";
             }
@@ -65,7 +67,7 @@ public:
         if (key == ' ') {
             return "Space";
         } else {
-            return string(1, (char)(toupper(key)));
+            return string(1, (char) (toupper(key)));
         }
     }
 

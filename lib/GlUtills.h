@@ -25,9 +25,9 @@ void glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, G
 
 void initGl(int &argc, char **argv, int width, int height, const char *title) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitContextVersion(3, 3);
-    glutInitContextProfile(GLUT_CORE_PROFILE);
+    glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
     glutInitWindowPosition(100, 100);
     glutInitWindowSize(width, height);
     glutCreateWindow(title);

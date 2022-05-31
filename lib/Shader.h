@@ -17,7 +17,7 @@ string readFile(const char *filePath) {
 
     if (!fileStream.is_open()) {
         cerr << "Could not read file " << filePath << ". File does not exist." << endl;
-        return "";
+        exit(0);
     }
 
     string line = "";
